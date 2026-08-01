@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pyodbc
+qdrant-client
+ollama
+langchain-community
+langchain-text-splitters
+pypdf
+python-docx
+reportlab
