@@ -1,47 +1,36 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
-from app.retriever import search
-from app.ollama_client import chat
-from app.ingest import ingest_file
 from app.db import init_db
 from app.qdrant_client import init_qdrant
+from app.routers import chat, documents
+from app.schemas import HealthResponse
+from app.settings import settings
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 init_db()
 init_qdrant()
 
-class Query(BaseModel):
-    question: str
+app.include_router(documents.router)
+app.include_router(chat.router)
+
+
+@app.get("/api/health", response_model=HealthResponse)
+def health():
+    return HealthResponse(status="ok")
+
 
 @app.get("/")
 def home():
     return {
         "message": "Knowledge Base Chat API is running",
-        "endpoints": ["/docs", "/chat", "/ingest"]
+        "docs": "/docs",
     }
-
-@app.post("/chat")
-def chat_endpoint(query: Query):
-    docs = search(query.question)
-
-    context = "\n\n".join(docs)
-
-    answer = chat(context, query.question)
-
-    return {
-        "answer": answer,
-        "sources": docs
-    }
-
-# @app.post("/ingest")
-# def ingest_endpoint(file_path: str):
-#     return ingest_file(file_path)
-
-class IngestRequest(BaseModel):
-    file_path: str
-    
-@app.post("/ingest")
-def ingest_endpoint(req: IngestRequest):
-    return ingest_file(req.file_path)

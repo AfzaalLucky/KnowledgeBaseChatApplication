@@ -6,5 +6,7 @@ ollama
 langchain-community
 langchain-text-splitters
 pypdf
-python-docx
+docx2txt
 reportlab
+pydantic-settings
+python-multipart

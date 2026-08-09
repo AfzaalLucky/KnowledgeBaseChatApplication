@@ -70,6 +70,20 @@ def update_document_status(
     conn.close()
 
 
+def insert_chunks(rows: list[tuple[int, str, str]]) -> None:
+    """Each row is (doc_id, content, qdrant_id)."""
+    if not rows:
+        return
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.executemany(
+        "INSERT INTO Chunks (doc_id, content, qdrant_id) VALUES (?, ?, ?)",
+        rows,
+    )
+    conn.commit()
+    conn.close()
+
+
 def get_chunk_qdrant_ids(doc_id: int) -> list[str]:
     conn = get_conn()
     cursor = conn.cursor()
